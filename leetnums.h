@@ -4,7 +4,12 @@
 /**
  * Extracts the nth bit of the integer x
  */
-#define nbit(x, n) (((x) >> (n)) & 1)
+#define nbit(x, n) (((x) >> (n)) & 0x1)
+
+/**
+ * Create bit mask with lower n bits enabled
+ */
+#define nmask(n) (~((~0x0) << (n)))
 
 /**
  * Enumerates the possible bintree operations
@@ -29,7 +34,7 @@ struct bintree
 /**
  * Recursively generates a bitshift/xor expression
  */
-struct bintree *calc(unsigned long x);
+struct bintree *calc(const unsigned long x);
 
 /**
  * For debugging
