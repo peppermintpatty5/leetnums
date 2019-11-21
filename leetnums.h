@@ -16,8 +16,10 @@
  */
 enum ops
 {
-    SHLQ, /* shift left */
-    XORQ  /* exclusive OR */
+    ZERO, /* the number 0 */
+    ONE,  /* the number 1 */
+    SHL,  /* shift left */
+    XOR   /* exclusive OR */
 };
 
 /**
@@ -27,14 +29,13 @@ struct bintree
 {
     struct bintree *l; /* left hand side */
     struct bintree *r; /* right hand side */
-    unsigned long x;   /* numeric value */
     enum ops op;       /* operation type */
 };
 
 /**
  * Recursively generates a bitshift/xor expression
  */
-struct bintree *calc(const unsigned long x);
+struct bintree *genbt(const unsigned x);
 
 /**
  * For debugging

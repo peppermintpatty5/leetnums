@@ -6,23 +6,23 @@
 int main(int argc, char const *argv[])
 {
     if (argc > 1)
-        printbt(calc(atol(argv[1])));
+        printbt(genbt(atoi(argv[1])));
     else
-        fprintf(stderr, "Missing number argument\n");
+        fprintf(stderr, "Missing number argument");
     putchar('\n');
 
     return EXIT_SUCCESS;
 }
 
-struct bintree *calc(unsigned long const x)
+struct bintree *genbt(unsigned const x)
 {
-    unsigned long n = 0;
+    unsigned n = 0;
     struct bintree *bt = malloc(sizeof(struct bintree));
 
-    bt->x = x;
-
-    if (x == 0 || x == 1) /* base cases */
-        bt->l = bt->r = NULL;
+    if (x == 0)
+        *bt = (struct bintree){NULL, NULL, ZERO};
+    else if (x == 1)
+        *bt = (struct bintree){NULL, NULL, ONE};
     else
     {
         while (!nbit(x, n))
@@ -30,18 +30,19 @@ struct bintree *calc(unsigned long const x)
 
         if (n) /* x is evenly divisible by 2^n */
         {
-            bt->l = calc(x >> n);
-            bt->r = calc(n);
-            bt->op = SHLQ;
+            bt->l = genbt(x >> n);
+            bt->r = genbt(n);
+            bt->op = SHL;
         }
         else /* find best way to cut x in half */
         {
-            while (x >> n)
-                n++;
+            n = sizeof(x) << 3;
+            while (!nbit(x, n - 1))
+                n--;
 
-            bt->l = calc(x & ~nmask(n >> 1));
-            bt->r = calc(x & nmask(n >> 1));
-            bt->op = XORQ;
+            bt->l = genbt(x & ~nmask(n >> 1));
+            bt->r = genbt(x & nmask(n >> 1));
+            bt->op = XOR;
         }
     }
 
@@ -50,22 +51,25 @@ struct bintree *calc(unsigned long const x)
 
 void printbt(struct bintree const *bt)
 {
-    if (bt->l && bt->r)
+    putchar('(');
+    switch (bt->op)
     {
-        putchar('(');
+    case ZERO:
+        printf("!!*\"\"");
+        break;
+    case ONE:
+        printf("!*\"\"");
+        break;
+    case SHL:
         printbt(bt->l);
-        switch (bt->op)
-        {
-        case SHLQ:
-            printf("<<");
-            break;
-        case XORQ:
-            printf("^");
-            break;
-        }
+        printf("<<");
         printbt(bt->r);
-        putchar(')');
+        break;
+    case XOR:
+        printbt(bt->l);
+        printf("^");
+        printbt(bt->r);
+        break;
     }
-    else
-        printf("%s*\"\"", bt->x ? "!" : "");
+    putchar(')');
 }
