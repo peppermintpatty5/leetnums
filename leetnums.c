@@ -1,7 +1,6 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "leetnums.h"
 
@@ -19,7 +18,7 @@ int main(int argc, char const *argv[])
 
     for (i = 1; i < argc; i++)
     {
-        if (argv[i][0] == '-') /* flag */
+        if (argv[i][0] == '-' && !atol(argv[i])) /* flag */
         {
             switch (argv[i][1])
             {
@@ -37,8 +36,6 @@ int main(int argc, char const *argv[])
                 exit(EXIT_FAILURE);
             }
         }
-        else if (!strcmp(argv[i], "ULONG_MAX"))
-            x = ULONG_MAX;
         else
             x = atol(argv[i]);
     }

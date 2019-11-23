@@ -7,7 +7,7 @@ Every positive integer has a unique binary representation, which can be transfor
 ## Usage
 This program loosely enforces the following command line argument syntax:
 ```sh
-$ ./a.out [$num|"ULONG_MAX"] # the number to convert
+$ ./a.out [$num] # the number to convert (can be negative)
           [-d$depth] # depth used in printing expression tree
           [-f$format] # C-style printf format specifier
           [-s] # enables statistical output
