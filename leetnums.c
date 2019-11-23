@@ -1,55 +1,67 @@
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "leetnums.h"
 
-#define DEBUG_MODE 0
-#define CACHE_SIZE 256
+#define CACHE_SIZE 32
 
-static size_t malloc_counter = 0;
+static char const *format = "%lu";
+static size_t malloc_count = 0;
 static struct bintree *CACHE[CACHE_SIZE];
 
 int main(int argc, char const *argv[])
 {
-#if DEBUG_MODE
-    size_t i, j;
-
-    /* long x = 18446744073709551616; */
-    for (i = 0; i < 256; i++)
-    {
-        malloc_counter = 0;
-        for (j = 0; j < CACHE_SIZE; j++)
-            CACHE[j] = NULL;
-
-        genbt(i << 8);
-        printf("%lu\n", malloc_counter);
-    }
-#else
-    size_t i;
+    unsigned long i, x = 0;
+    unsigned int depth = UINT_MAX, stats = 0;
     struct bintree *bt;
 
-    if (argc > 0)
+    for (i = 1; i < argc; i++)
     {
-        bt = genbt(0xFFFFFFFFFFFFFFFF);
-        printbt(bt);
-        putchar('\n');
+        if (argv[i][0] == '-') /* flag */
+        {
+            switch (argv[i][1])
+            {
+            case 'd':
+                depth = atoi(&argv[i][2]);
+                break;
+            case 'f':
+                format = &argv[i][2];
+                break;
+            case 's':
+                stats = 1;
+                break;
+            default:
+                fprintf(stderr, "Unrecognized flag: %s\n", argv[i]);
+                exit(EXIT_FAILURE);
+            }
+        }
+        else if (!strcmp(argv[i], "ULONG_MAX"))
+            x = ULONG_MAX;
+        else
+            x = atol(argv[i]);
     }
-    else
-        fprintf(stderr, "Missing number argument\n");
 
-    for (i = 0; i < CACHE_SIZE; i++)
-        if (CACHE[i])
-            printf("%lu, ", i);
+    bt = genbt(x);
+    printbt(bt, depth);
     putchar('\n');
 
-    i = (((((((((((((1UL) << (1UL)) ^ (1UL)) << ((1UL) << (1UL))) ^ (((1UL) << (1UL)) ^ (1UL))) << ((1UL) << ((1UL) << (1UL)))) ^ (((((1UL) << (1UL)) ^ (1UL)) << ((1UL) << (1UL))) ^ (((1UL) << (1UL)) ^ (1UL)))) << ((1UL) << (((1UL) << (1UL)) ^ (1UL)))) ^ (((((((1UL) << (1UL)) ^ (1UL)) << ((1UL) << (1UL))) ^ (((1UL) << (1UL)) ^ (1UL))) << ((1UL) << ((1UL) << (1UL)))) ^ (((((1UL) << (1UL)) ^ (1UL)) << ((1UL) << (1UL))) ^ (((1UL) << (1UL)) ^ (1UL))))) << ((1UL) << ((1UL) << ((1UL) << (1UL))))) ^ (((((((((1UL) << (1UL)) ^ (1UL)) << ((1UL) << (1UL))) ^ (((1UL) << (1UL)) ^ (1UL))) << ((1UL) << ((1UL) << (1UL)))) ^ (((((1UL) << (1UL)) ^ (1UL)) << ((1UL) << (1UL))) ^ (((1UL) << (1UL)) ^ (1UL)))) << ((1UL) << (((1UL) << (1UL)) ^ (1UL)))) ^ (((((((1UL) << (1UL)) ^ (1UL)) << ((1UL) << (1UL))) ^ (((1UL) << (1UL)) ^ (1UL))) << ((1UL) << ((1UL) << (1UL)))) ^ (((((1UL) << (1UL)) ^ (1UL)) << ((1UL) << (1UL))) ^ (((1UL) << (1UL)) ^ (1UL)))))) << ((1UL) << (((1UL) << ((1UL) << (1UL))) ^ (1UL)))) ^ (((((((((((1UL) << (1UL)) ^ (1UL)) << ((1UL) << (1UL))) ^ (((1UL) << (1UL)) ^ (1UL))) << ((1UL) << ((1UL) << (1UL)))) ^ (((((1UL) << (1UL)) ^ (1UL)) << ((1UL) << (1UL))) ^ (((1UL) << (1UL)) ^ (1UL)))) << ((1UL) << (((1UL) << (1UL)) ^ (1UL)))) ^ (((((((1UL) << (1UL)) ^ (1UL)) << ((1UL) << (1UL))) ^ (((1UL) << (1UL)) ^ (1UL))) << ((1UL) << ((1UL) << (1UL)))) ^ (((((1UL) << (1UL)) ^ (1UL)) << ((1UL) << (1UL))) ^ (((1UL) << (1UL)) ^ (1UL))))) << ((1UL) << ((1UL) << ((1UL) << (1UL))))) ^ (((((((((1UL) << (1UL)) ^ (1UL)) << ((1UL) << (1UL))) ^ (((1UL) << (1UL)) ^ (1UL))) << ((1UL) << ((1UL) << (1UL)))) ^ (((((1UL) << (1UL)) ^ (1UL)) << ((1UL) << (1UL))) ^ (((1UL) << (1UL)) ^ (1UL)))) << ((1UL) << (((1UL) << (1UL)) ^ (1UL)))) ^ (((((((1UL) << (1UL)) ^ (1UL)) << ((1UL) << (1UL))) ^ (((1UL) << (1UL)) ^ (1UL))) << ((1UL) << ((1UL) << (1UL)))) ^ (((((1UL) << (1UL)) ^ (1UL)) << ((1UL) << (1UL))) ^ (((1UL) << (1UL)) ^ (1UL)))))));
-    printf("i: %lu\n", i);
-#endif
+    if (stats)
+    {
+        printf("node count: %lu\n", nodecount(bt));
+        printf("malloc count: %lu\n", malloc_count);
+        printf("cache hits: ");
+        for (i = 0; i < CACHE_SIZE; i++)
+            if (CACHE[i])
+                printf("%lu ", i);
+        putchar('\n');
+    }
 
     return EXIT_SUCCESS;
 }
 
-struct bintree *genbt(unsigned long const x)
+struct bintree *genbt(unsigned long x)
 {
     unsigned long n = 0;
     struct bintree *bt;
@@ -59,12 +71,14 @@ struct bintree *genbt(unsigned long const x)
     else
     {
         bt = malloc(sizeof(struct bintree));
-        malloc_counter++;
+        malloc_count++;
 
-        if (x == 0)
-            *bt = (struct bintree){NULL, NULL, ZERO};
-        else if (x == 1)
-            *bt = (struct bintree){NULL, NULL, ONE};
+        bt->val = x;
+        if (x == 0 || x == 1)
+        {
+            bt->l = bt->r = NULL;
+            bt->op = VAL;
+        }
         else
         {
             while (!nbit(x, n))
@@ -82,8 +96,8 @@ struct bintree *genbt(unsigned long const x)
                 while (!nbit(x, n - 1))
                     n--;
 
-                bt->l = genbt(x & ~nmask(n >> 1));
-                bt->r = genbt(x & nmask(n >> 1));
+                bt->l = genbt(x & nmask(n >> 1));
+                bt->r = genbt(x & ~nmask(n >> 1));
                 bt->op = XOR;
             }
         }
@@ -95,27 +109,21 @@ struct bintree *genbt(unsigned long const x)
     return bt;
 }
 
-void printbt(struct bintree const *bt)
+void printbt(struct bintree const *bt, unsigned int depth)
 {
-    putchar('(');
-    switch (bt->op)
+    if (depth && bt->op) /* latter works like a boolean */
     {
-    case ZERO:
-        printf("0UL");
-        break;
-    case ONE:
-        printf("1UL");
-        break;
-    case SHL:
-        printbt(bt->l);
-        printf("<<");
-        printbt(bt->r);
-        break;
-    case XOR:
-        printbt(bt->l);
-        printf("^");
-        printbt(bt->r);
-        break;
+        putchar('(');
+        printbt(bt->l, depth - 1);
+        printf(bt->op == SHL ? "<<" : "^");
+        printbt(bt->r, depth - 1);
+        putchar(')');
     }
-    putchar(')');
+    else
+        printf(format, bt->val);
+}
+
+size_t nodecount(struct bintree const *bt)
+{
+    return bt ? 1 + nodecount(bt->l) + nodecount(bt->r) : 0;
 }

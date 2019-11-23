@@ -2,24 +2,23 @@
 #define LEETNUMS_H_
 
 /**
- * Extracts the nth bit of the integer x
+ * Extracts the nth bit of the long integer x
  */
 #define nbit(x, n) (((x) >> (n)) & 0x1UL)
 
 /**
- * Create bit mask with lower n bits enabled
+ * Produces a bit mask with lower n bits disabled
  */
-#define nmask(n) (~((~0x0UL) << (n)))
+#define nmask(n) (~0x0UL << (n))
 
 /**
  * Enumerates the possible bintree operations
  */
 enum ops
 {
-    ZERO, /* the number 0 */
-    ONE,  /* the number 1 */
-    SHL,  /* shift left */
-    XOR   /* exclusive OR */
+    VAL, /* numeric value */
+    SHL, /* bitshift left */
+    XOR  /* exclusive OR */
 };
 
 /**
@@ -29,17 +28,23 @@ struct bintree
 {
     struct bintree *l; /* left hand side */
     struct bintree *r; /* right hand side */
+    unsigned long val; /* numeric value */
     enum ops op;       /* operation type */
 };
 
 /**
  * Recursively generates a bitshift/xor expression
  */
-struct bintree *genbt(unsigned long const x);
+struct bintree *genbt(unsigned long x);
 
 /**
- * For debugging
+ * Prints the bitshift/xor expression to stdout
  */
-void printbt(struct bintree const *bt);
+void printbt(struct bintree const *bt, unsigned int depth);
+
+/**
+ * Recursiely counts the number of nodes in the tree
+ */
+size_t nodecount(struct bintree const *bt);
 
 #endif
