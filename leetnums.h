@@ -45,6 +45,6 @@ void printbt(struct bintree const *bt, unsigned int depth);
 /**
  * Recursiely counts the number of nodes in the tree
  */
-size_t nodecount(struct bintree const *bt);
+unsigned int nodecount(struct bintree const *bt);
 
 #endif

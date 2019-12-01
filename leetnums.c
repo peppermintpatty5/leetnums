@@ -1,21 +1,23 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "leetnums.h"
 
 #define CACHE_SIZE 32
 
 static char const *format = "%lu";
-static size_t malloc_count = 0;
+static unsigned int malloc_count = 0;
 static struct bintree *CACHE[CACHE_SIZE];
 
 int main(int argc, char const *argv[])
 {
-    unsigned long i, x = 0;
-    unsigned int depth = UINT_MAX, stats = 0;
+    unsigned long x = 0;
+    unsigned int depth = UINT_MAX, stats = 0, i;
     struct bintree *bt;
 
+    /* parse command line args */
     for (i = 1; i < argc; i++)
     {
         if (argv[i][0] == '-' && !atol(argv[i])) /* flag */
@@ -40,18 +42,21 @@ int main(int argc, char const *argv[])
             x = atol(argv[i]);
     }
 
+    /* action happens here */
+    memset(CACHE, 0, sizeof(CACHE));
     bt = genbt(x);
     printbt(bt, depth);
     putchar('\n');
 
+    /* statistical output */
     if (stats)
     {
-        printf("node count: %lu\n", nodecount(bt));
-        printf("malloc count: %lu\n", malloc_count);
+        printf("node count: %u\n", nodecount(bt));
+        printf("malloc count: %u\n", malloc_count);
         printf("cache hits: ");
         for (i = 0; i < CACHE_SIZE; i++)
             if (CACHE[i])
-                printf("%lu ", i);
+                printf("%u ", i);
         putchar('\n');
     }
 
@@ -120,7 +125,7 @@ void printbt(struct bintree const *bt, unsigned int depth)
         printf(format, bt->val);
 }
 
-size_t nodecount(struct bintree const *bt)
+unsigned int nodecount(struct bintree const *bt)
 {
     return bt ? 1 + nodecount(bt->l) + nodecount(bt->r) : 0;
 }
